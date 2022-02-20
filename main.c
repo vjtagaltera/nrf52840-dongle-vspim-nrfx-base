@@ -48,13 +48,40 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#if 0
 #define NRFX_SPIM_SCK_PIN  3
 #define NRFX_SPIM_MOSI_PIN 4
 #define NRFX_SPIM_MISO_PIN 28
 #define NRFX_SPIM_SS_PIN   29
 #define NRFX_SPIM_DCX_PIN  30
+#elif 0 /* ok with instance 3 spim_extended mode */
+  /* pin 9 10 not working, thus move to 13 31 */
+#define NRFX_SPIM_SCK_PIN  13 //10  //pin 10 not working. 13 ok.
+#define NRFX_SPIM_MOSI_PIN 31 //9   //pin 9 not working
+#define NRFX_SPIM_MISO_PIN 32       //pin 32 input ok.
+#define NRFX_SPIM_SS_PIN   20       //pin 20 output ce ok.
+#define NRFX_SPIM_DCX_PIN  10 //13  //pin 10 not working. 13 ok.
+#elif 1 /* ok with instance 0 */
+  /* ok */
+#define NRFX_SPIM_SCK_PIN  13 //10  //pin 10 not working. 13 ok.
+#define NRFX_SPIM_MOSI_PIN 31 //9   //pin 9 not working
+#define NRFX_SPIM_MISO_PIN 32       //pin 32 input ok.
+#define NRFX_SPIM_SS_PIN   20       //pin 20 output ce ok.
+//#define NRFX_SPIM_DCX_PIN  10 //13  //pin 10 not working. 13 ok.
+#else
+  /* xfer not going */
+#define NRFX_SPIM_SCK_PIN  10//13 //10  //pin 10 not working. 13 ok.
+#define NRFX_SPIM_MOSI_PIN 9 //31 //9   //pin 9 not working
+#define NRFX_SPIM_MISO_PIN 32       //pin 32 input ok.
+#define NRFX_SPIM_SS_PIN   20       //pin 20 output ce ok.
+//#define NRFX_SPIM_DCX_PIN  10 //13  //pin 10 not working. 13 ok.
+#endif
 
+#if 0
 #define SPI_INSTANCE  3                                           /**< SPI instance index. */
+#else
+#define SPI_INSTANCE  0                                           /**< SPI instance index. */
+#endif
 static const nrfx_spim_t spi = NRFX_SPIM_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
 
 static volatile bool spi_xfer_done;  /**< Flag used to indicate that SPI instance completed the transfer. */
@@ -86,34 +113,48 @@ int main(void)
     nrfx_spim_xfer_desc_t xfer_desc = NRFX_SPIM_XFER_TRX(m_tx_buf, m_length, m_rx_buf, m_length);
 
     nrfx_spim_config_t spi_config = NRFX_SPIM_DEFAULT_CONFIG;
-    spi_config.frequency      = NRF_SPIM_FREQ_1M;
+    //spi_config.frequency      = NRF_SPIM_FREQ_1M;
+    spi_config.frequency      = NRF_SPIM_FREQ_125K;
     spi_config.ss_pin         = NRFX_SPIM_SS_PIN;
     spi_config.miso_pin       = NRFX_SPIM_MISO_PIN;
     spi_config.mosi_pin       = NRFX_SPIM_MOSI_PIN;
     spi_config.sck_pin        = NRFX_SPIM_SCK_PIN;
+    #if 0 /* spim3 extended NRFX_CHECK(NRFX_SPIM_EXTENDED_ENABLED) */
     spi_config.dcx_pin        = NRFX_SPIM_DCX_PIN;
     spi_config.use_hw_ss      = true;
+    #endif
     spi_config.ss_active_high = false;
     APP_ERROR_CHECK(nrfx_spim_init(&spi, &spi_config, spim_event_handler, NULL));
 
     NRF_LOG_INFO("NRFX SPIM example started.");
+    NRF_LOG_PROCESS();
 
+    uint32_t loop_count = 0;
     while (1)
     {
         // Reset rx buffer and transfer done flag
         memset(m_rx_buf, 0, m_length);
         spi_xfer_done = false;
 
-        APP_ERROR_CHECK(nrfx_spim_xfer_dcx(&spi, &xfer_desc, 0, 15));
+        #if 0 /* spim 3 extended */
+        //APP_ERROR_CHECK(nrfx_spim_xfer_dcx(&spi, &xfer_desc, 0, 15));
+        APP_ERROR_CHECK(nrfx_spim_xfer_dcx(&spi, &xfer_desc, 0, NRF_SPIM_DCX_CNT_ALL_CMD-1));
+        //APP_ERROR_CHECK(nrfx_spim_xfer_dcx(&spi, &xfer_desc, 0, 2));
+        #else /* spim 0 */
+        APP_ERROR_CHECK(nrfx_spim_xfer(&spi, &xfer_desc, 0));
+        #endif
 
         while (!spi_xfer_done)
         {
             __WFE();
         }
 
+        NRF_LOG_INFO(" sample %u ", ++loop_count);
         NRF_LOG_FLUSH();
 
-        bsp_board_led_invert(BSP_BOARD_LED_0);
-        nrf_delay_ms(200);
+        //bsp_board_led_invert(BSP_BOARD_LED_0);
+        bsp_board_led_invert(BSP_BOARD_LED_3);
+        //nrf_delay_ms(200);
+        nrf_delay_ms(2000);
     }
 }
