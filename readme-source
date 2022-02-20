@@ -1,7 +1,7 @@
 
 create the project: 
 
-  copy the directory from nrfm_spi
+  copy the directory from nrfx_spim
   ~/nRF5_SDK_17.0.2_d674dde/examples/peripheral/nrfx_spim
 
   rename 10056 to 10059 in directory names, and file names. 
