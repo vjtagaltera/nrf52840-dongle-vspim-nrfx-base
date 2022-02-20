@@ -1,0 +1,18 @@
+
+create the project: 
+
+  copy the directory from nrfm_spi
+  ~/nRF5_SDK_17.0.2_d674dde/examples/peripheral/nrfx_spim
+
+  rename 10056 to 10059 in directory names, and file names. 
+  change 10056 to 10059 in project files.
+
+
+testing the spi xfer: 
+
+  use the default spim instance 3. xfer works even with nfc pins. 
+  move away from nfc pins. captured proper spi signals on an oscilloscope. 
+
+  change to spim instance 0. xfer got stuck on nfc pins. non-nfc pins ok.
+
+
