@@ -16,3 +16,10 @@ testing the spi xfer:
   change to spim instance 0. xfer got stuck on nfc pins. non-nfc pins ok.
 
 
+reference:
+
+  https://jimmywongiot.com/2019/04/30/overview-on-spi-master-slave-on-nrf52-series/
+  Overview on SPI Master/Slave on nRF52 Series
+  by Jimmy's Thing
+
+
